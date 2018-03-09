@@ -1,21 +1,34 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Acceleration</title>
-    
+   <head>
+      <meta name = "viewport" content = "width = device-width, initial-scale = 1">
+      <link rel = "stylesheet" href = "jquery.mobile-1.4.5.min.css">
+      <script src = "jquery-1.11.3.min.js"></script>
+      <script src = "jquery.mobile-1.4.5.min.js"></script>
+  
+      <script>
+         $(document).on("pagecreate","#page1",function() {
+            $("p").on("tap",function() {
+               $(this).hide();
+            });
+         });
+      </script>
+   </head>
 
- 
-  </head>
-  <body>
-     
-<p id="count">0</p>
+   <body>
+      <div data-role = "page" id = "page1">
+         <div data-role = "header">
+            <h2>Header</h2>
+         </div>
 
-<script>
-document.getElementById("count").innerHTML=  Date.now();
-setInterval(function () {
-document.getElementById("count").innerHTML=  Date.now();
-}, 1000);
-</script>
+         <div data-role = "main" class = "ui-content">
+            <p>This line will disappear, if you tap on it.</p>
+         </div>
 
-  </body>
+         <div data-role = "footer">
+            <h2>Footer</h2>
+         </div>
+      
+      </div>
+   </body>
 </html>
