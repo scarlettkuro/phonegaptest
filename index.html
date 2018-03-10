@@ -8,178 +8,132 @@
   
       <script>
          $(document).on("pagecreate","#page1",function() {
-        function message(text) {
+
+            function message(text) {
                 $('#message').text(text);
-        }
-
-        function newGame() {
-            clearTable();
-            message('play');
-            refresh();
-        }
-
-            function clearTable() {
-                table = [
-                      [0, 0, 0],
-                      [0, 0, 0],
-                      [0, 0, 0],
-                    ];
-            }
-
-            var table = [];
-
-        var endgame = false;
-            
-            function checkTable() {
-                for(var row = 0; row < 3; row++) {
-                    for(var col = 0; col < 3; col++) {
-                     if (table[row][col] == 3) return true;
-                    }
-                    }
-
-
-                for(var row = 0; row < 3; row++) {
-                    var done = true;
-                    for(var col = 0; col < 3; col++) {
-                            done  = done && table[row][col] == 1;
-                    }
-                    if (done)  {
-                        for(var col = 0; col < 3; col++) {
-                                table[row][col] = 3;
-                        }
-                        return true;
-                    }
-                }
-                for(var col = 0; col < 3; col++) {
-                    var done = true;
-                    for(var row = 0; row < 3; row++) {
-                            done  = done && table[row][col] == 1;
-                    }
-                    if (done)  {
-                        for(var row = 0; row < 3; row++) {
-                                table[row][col] = 3;
-                        }
-                        return true;
-                    }
-                }
-                var done = true;
-                    for(var i = 0; i< 3; i++) {
-                            done  = done && table[i][i] == 1;
-                    }
-                    if (done)  {
-                         for(var i = 0; i< 3; i++) {
-                             table[i][i] = 3;
-                            }
-                        return true;
-                    }
-                var done = true;
-                    for(var i = 0; i< 3; i++) {
-                            done = done && table[2-i][i] == 1;
-                    }
-                    if (done)  {
-                         for(var i = 0; i< 3; i++) {
-                              table[2-i][i] = 3;
-                        }
-                        return true;
-                    }
-
-                return false;
             }
             
-            function setMark(row, col, player) {
-                table[row][col] = player;
-            }
-            
-            function getMark(row, col) {
-                return table[row][col];
-            }
-
-
-            function refresh() {
-                for(var row = 0; row < 3; row++) {
-                    for(var col = 0; col < 3; col++) {
-                            drawColor(row, col, table[row][col]);
-                    }
-                }
-            }
-
-            function drawColor(row, col, color) {
-                    var colors = ['grey', 'red', 'blue', 'green'];
-                   var cell = $('.cell').children().eq(0).children().eq(row).children().eq(col);
-                    cell.css('background-color', colors[color]);
-            }
-
             function randomInt(maxVal) {
                 return Math.floor(Math.random() * maxVal);
             }
+/*
+    function has(object, key) {
+          return object ? hasOwnProperty.call(object, key) : false;
+   }
 
-            function AI () {
-                do {
-                    var row = randomInt(3);
-                    var col = randomInt(3);
-	                } while (table[row][col] != 0)
-                table[row][col] = 2;
+*/
+
+
+
+
+            var kicks = {};
+
+            var kicked = 10;
+
+            function kickName(row, col) {
+                return "kick_" + row + "_" + col;
             }
 
-            newGame();
-            refresh() ;
+            function removeKick(row, col) {
+                kick = kicks[kickName(row, col)];
+                kick.remove();
+                delete kicks[kickName(row, col)];
+            }
+    
+            function hitKick(row, col) {
+                removeKick(row, col);
+                message(++kicked);
+            }
 
-            $("td").on("tap",function(e) {
-                if (checkTable()) {
-                    newGame();              
-                    return;
+            function putKick(row, col) {
+                var kick = $('<div class="kick"></div>');
+                $('.game').append(kick);
+                kick.css('margin-left', 20*col + 'vh').css('margin-top', 30*row + 'vh');
+                kicks[kickName(row, col)] = kick;
+                return kick;
+            }
+
+            function cell(x, y, width, height) {
+                var cellWidth = width / 3;
+                var cellHeight = height / 3;
+                var col =  Math.floor(x/cellWidth);
+                var row =  Math.floor(y/cellHeight);
+                return {
+                    'row' : row, 
+                    'col' : col
+                };
+            }
+
+            setInterval(function (){
+                Object.keys(kicks).forEach(function (kickName) {
+                        kicks[kickName].remove();
+                        delete kicks[kickName];
+                        message(--kicked);
+                });
+
+                for (var copies = 0; copies <= randomInt(2); copies++) {
+                    do {
+                        var row = randomInt(3);
+                        var col = randomInt(3);
+                    } while (kicks[kickName(row, col)] != null) 
+                    putKick(row, col);
                 }
-                var row = e.target.parentElement.rowIndex;
-                var col = e.target.cellIndex;
+            }, 1000);
 
-                if (getMark(row, col) != 0) return ;
+            $(".game").on("tap",function(e) {
+//message(e.screenY + ':' + e.pageY + ':' + e.clientY + ':' + e.offsetY);
+                var width =$(this).width();
+                var height = $(this).height();
+                var x =  e.pageX - $(this).position().left;
+                var y =  e.pageY - $(this).position().top;
+                
+                var cellCoords = cell(x, y, width, height);
+//message(x + ':' + y + ':' + width + ':' + height);
+//message(JSON.stringify(cellCoords));
 
-                setMark(row, col, 1);
-                if (!checkTable()) {
-                    AI();
-                } else {
-                    message('well done');
-                }
-                refresh();
+                 hitKick(cellCoords.row, cellCoords.col);
             });
+
          });
       </script>
     <style>
-        .cell td {
-            height: 25vmin;
-            width: 25vmin;
-            background-color: red;
-
+        body, #page1 {
+            width : 100%;
+            height: 100%;
         }
-.cell {
+        .header {
+            height: 10vh;
+        }
+        .game {
+            background-image: url('vanessa.jpg');
+            width : 60vh;
+            height: 90vh;
+            background-color: black;
+            background-size:100%;
+            position: relative;
             margin: auto;
-}
+        }
+        .kick {
+            background-image: url('splash.png');
+            width : 33%;
+            height: 33%;
+            position: absolute;
+            background-repeat: no-repeat;
+            background-position: center; 
+            background-size:100%;
+        }
     </style>
    </head>
 
    <body>
       <div data-role = "page" id = "page1">
-         <div data-role = "header">
+         <div data-role = "header" class="header">
             <h2 id = "message">Header</h2>
          </div>
 
-        <table class="cell">
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-        </table>
+        <div class="game">
+            
+        </div>
       
       </div>
    </body>
